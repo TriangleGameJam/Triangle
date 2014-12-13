@@ -1,9 +1,22 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Text;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour 
 {
+    enum Abilities
+    {
+        None,
+        ShoulderShrug,
+        SassBlast,
+        JayZ,
+        TableFlip,
+        WhatevaWave,
+        ImNotListening,
+        WalkAway,
+        Slouch
+    }
     public const float DELAY_IN_MILLISECONDS = 200;
     public const int MAX_SEQUENCE_LENGTH = 6;
 
@@ -15,11 +28,17 @@ public class PlayerController : MonoBehaviour
     private float m_JumpForce = 500;
     private float m_Health;
     private bool m_IsGrounded;
-    private bool m_IsDead;
+    //private bool m_IsComboCompleted;
     private float m_Time;
 
+    public bool m_IsDead;
+
     [SerializeField]
-    private CircleCollider2D m_FeetCollider;
+    private GameObject m_Enemy;
+    [SerializeField]
+    private GameObject m_Table;
+    [SerializeField]
+    private GameObject m_Jayz;
 
     private ArrayList m_KeysPressed = new ArrayList();
     private StringBuilder m_KeySequence = new StringBuilder();
@@ -29,7 +48,6 @@ public class PlayerController : MonoBehaviour
 
 	void Start () 
     {
-        BoxCollider2D collider = GetComponent<BoxCollider2D>();
         m_KeysPressed.Add(KeyCode.RightArrow);
         m_KeysPressed.Add(KeyCode.LeftArrow);
         m_KeysPressed.Add(KeyCode.Space);
@@ -41,14 +59,17 @@ public class PlayerController : MonoBehaviour
         m_Health = 100;
         m_IsDead = false;
         m_IsGrounded = true;
+        //m_IsComboCompleted = false;
 	}
 	
 	void Update () 
     {
         foreach(KeyCode key in m_KeysPressed)
         {
-            if ((Time.time - m_Time)*1000 > DELAY_IN_MILLISECONDS || m_KeySequence.Length >= MAX_SEQUENCE_LENGTH)
+            if (((Time.time - m_Time) * 1000 > DELAY_IN_MILLISECONDS && m_KeySequence.Length > 0))
+                //|| ((Time.time - m_Time) * 1000 > DELAY_IN_MILLISECONDS && m_KeySequence.Length <= MAX_SEQUENCE_LENGTH))
             {
+                UnityEngine.Debug.Log("Call CheckCombo");
                 CheckCombo();
             }
             // Input.GetKey
@@ -98,35 +119,22 @@ public class PlayerController : MonoBehaviour
                     InputSequence(key.ToString());
                     break;
                 case KeyCode.Q:
-                    //PUNCH
-                    Attack();
+                    Attack(Abilities.ShoulderShrug);
                     InputSequence(key.ToString());
                     break;
                 case KeyCode.W:
-                    //KICK
-                    Attack();
+                    Attack(Abilities.SassBlast);
                     InputSequence(key.ToString());
                     break;
                 case KeyCode.E:
-                    //DODGE
-                    Dodge();
+                    Dodge(Abilities.WhatevaWave);
                     InputSequence(key.ToString());
                     break;
                 case KeyCode.R:
-                    //BLOCK
-                    Dodge();
+                    Dodge(Abilities.Slouch);
                     InputSequence(key.ToString());
                     break;
             }
-        }
-    }
-
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.transform.tag == "Ground" && !m_IsGrounded)
-        {
-            UnityEngine.Debug.Log("Touched Ground");
-            m_IsGrounded = true;
         }
     }
 
@@ -147,33 +155,97 @@ public class PlayerController : MonoBehaviour
         {
             case "WEERQQ":
                 UnityEngine.Debug.Log("Do the Jay-Z");
+                m_KeySequence = new StringBuilder();
+                Attack(Abilities.JayZ);
                 break;
             case "WWEQRQ":
                 UnityEngine.Debug.Log("Do the Tableflip");
+                Attack(Abilities.TableFlip);
+                m_KeySequence = new StringBuilder();
+                
                 break;
             case "EQRQ":
                 // GET FACING DIRECTION
                 UnityEngine.Debug.Log("Do the I'm Not Listening");
+                m_KeySequence = new StringBuilder();
+                Dodge(Abilities.ImNotListening);
                 break;
             case "EEQ":
                 // GET FACING DIRECTION
                 UnityEngine.Debug.Log("Do the Walk Away");
-                break;
-            case "SpaceSpace":
-                UnityEngine.Debug.Log("Double Jump");
+                m_KeySequence = new StringBuilder();
+                Dodge(Abilities.WalkAway);
                 break;
         }
         m_KeySequence = new StringBuilder();
     }
 
-    void Attack()
+    void Attack(Abilities attack)
     {
+        var heading = m_Enemy.transform.position - transform.position;
 
+        switch (attack)
+        {
+            case Abilities.ShoulderShrug:
+                if (heading.sqrMagnitude < 1) // maxRange * maxRange)
+                {
+                    UnityEngine.Debug.Log("Target is within range");
+                }
+                break;
+            case Abilities.SassBlast:
+                if (heading.sqrMagnitude < 1) // maxRange * maxRange)
+                {
+                    UnityEngine.Debug.Log("Target is within range");
+                }
+                break;
+            case Abilities.JayZ:
+                try
+                {
+                    GameObject jayz;
+                    jayz = Instantiate(m_Jayz, transform.position, transform.rotation) as GameObject;
+                    jayz.transform.rigidbody2D.velocity = transform.TransformDirection(Vector3.forward * 10);
+                }
+                catch (NullReferenceException) { }
+                break;
+            case Abilities.TableFlip:
+                try
+                {
+                    GameObject table;
+                    table = Instantiate(m_Table, transform.position, transform.rotation) as GameObject;
+                    table.transform.rigidbody2D.velocity = transform.TransformDirection(Vector3.forward * 10);
+                }
+                catch (NullReferenceException) { }
+                break;
+        }
     }
 
-    void Dodge()
+    void Dodge(Abilities dodge)
     {
+        // makes player invulnerable to certain things
+        switch (dodge)
+        {
+            case Abilities.WhatevaWave:
+                
+                break;
+            case Abilities.ImNotListening:
+                
+                break;
+            case Abilities.WalkAway:
+                
+                break;
+            case Abilities.Slouch:
+                
+                break;
+        }
+    }
 
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.transform.tag == "Ground" && !m_IsGrounded)
+        {
+            UnityEngine.Debug.Log("Touched Ground");
+            m_IsGrounded = true;
+        }
     }
 
     void TakeDamage(int dmg)
