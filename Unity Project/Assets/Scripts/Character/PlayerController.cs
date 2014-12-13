@@ -4,16 +4,22 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour 
 {
-    public const float DELAY = 0.5f;
+    public const float DELAY_IN_MILLISECONDS = 200;
     public const int MAX_SEQUENCE_LENGTH = 6;
 
     #region Properties
 
     private float m_MoveSpeed = 0.05f;
-    private float m_JumpForce = 2.2f;
+
+    [SerializeField]
+    private float m_JumpForce = 500;
     private float m_Health;
-    private float m_Time;
+    private bool m_IsGrounded;
     private bool m_IsDead;
+    private float m_Time;
+
+    [SerializeField]
+    private CircleCollider2D m_FeetCollider;
 
     private ArrayList m_KeysPressed = new ArrayList();
     private StringBuilder m_KeySequence = new StringBuilder();
@@ -23,6 +29,7 @@ public class PlayerController : MonoBehaviour
 
 	void Start () 
     {
+        BoxCollider2D collider = GetComponent<BoxCollider2D>();
         m_KeysPressed.Add(KeyCode.RightArrow);
         m_KeysPressed.Add(KeyCode.LeftArrow);
         m_KeysPressed.Add(KeyCode.Space);
@@ -32,13 +39,14 @@ public class PlayerController : MonoBehaviour
         m_KeysPressed.Add(KeyCode.R);
         m_Health = 100;
         m_IsDead = false;
+        m_IsGrounded = true;
 	}
 	
 	void Update () 
     {
         foreach(KeyCode key in m_KeysPressed)
         {
-            if ((Time.time - m_Time) > DELAY)
+            if ((Time.time - m_Time)*1000 > DELAY_IN_MILLISECONDS || m_KeySequence.Length >= MAX_SEQUENCE_LENGTH)
             {
                 CheckCombo();
             }
@@ -80,9 +88,12 @@ public class PlayerController : MonoBehaviour
             switch (key)
             {
                 case KeyCode.Space:
-                    m_Position = transform.position;
-                    Vector2 tmp = new Vector2(m_Position.x, m_Position.y + m_JumpForce);
-                    transform.position = tmp;
+                    if (m_IsGrounded)
+                    {
+                        rigidbody2D.AddForce(Vector3.up * m_JumpForce * Time.deltaTime, ForceMode2D.Impulse);
+                        m_IsGrounded = false;
+                    }
+                    
                     InputSequence(key.ToString());
                     break;
                 case KeyCode.Q:
@@ -109,12 +120,20 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.transform.tag == "Ground" && !m_IsGrounded)
+        {
+            UnityEngine.Debug.Log("Touched Ground");
+            m_IsGrounded = true;
+        }
+    }
+
     void InputSequence(string key)
     {
-        if ((Time.time - m_Time) < DELAY)
+        if ((Time.time - m_Time)*1000 < DELAY_IN_MILLISECONDS)
         {
             m_KeySequence.Append(key);
-            UnityEngine.Debug.Log(m_KeySequence.ToString());
         }
     }
 
