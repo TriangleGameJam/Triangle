@@ -30,6 +30,7 @@ public class PlayerController : MonoBehaviour
         m_KeysPressed.Add(KeyCode.W);
         m_KeysPressed.Add(KeyCode.E);
         m_KeysPressed.Add(KeyCode.R);
+        
         m_Health = 100;
         m_IsDead = false;
 	}
