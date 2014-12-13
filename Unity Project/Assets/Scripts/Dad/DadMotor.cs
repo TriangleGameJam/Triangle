@@ -29,6 +29,16 @@ public class DadMotor : MonoBehaviour
     [SerializeField]
     private Transform m_TargetWayPoint = null;
 
+    [SerializeField]
+    private float m_TossBeerTimer = 5.0f;
+    [SerializeField]
+    private float m_TossForce = 0.0f;
+    [SerializeField]
+    private GameObject m_TossBeerPrefab = null;
+
+    [SerializeField]
+    private float m_ActionQueueTime = 10.0f;
+    private float m_ActionTimer = 0.0f;
 
 	// Use this for initialization
 	void Start () 
@@ -63,7 +73,16 @@ public class DadMotor : MonoBehaviour
         {
             transform.position = position;
         }
-        
+
+
+        m_ActionTimer += Time.deltaTime;
+        if(m_ActionTimer > m_ActionQueueTime)
+        {
+            //TODO: Choose a random action and queue it up
+            StartCoroutine(TossBeerRoutine());
+            m_ActionTimer = 0.0f;
+        }
+
     }
 
     void UpdateTarget()
@@ -91,5 +110,24 @@ public class DadMotor : MonoBehaviour
             }
         }
         m_TargetWayPoint = bestWaypoint;
+    }
+
+    IEnumerator TossBeerRoutine()
+    {
+        yield return new WaitForSeconds(m_TossBeerTimer);
+        TossBeer();
+
+    }
+    private void TossBeer()
+    {
+        Vector2 direction = (m_Player.transform.position - transform.position).normalized;
+        Vector2 position = transform.position;
+        GameObject go = (GameObject)Instantiate(m_TossBeerPrefab, position + direction, Quaternion.identity);
+        Rigidbody2D body = go.GetComponent<Rigidbody2D>();
+        Projectile projectile = go.GetComponent<Projectile>();
+        projectile.sender = transform;
+        projectile.target = m_Player;
+        projectile.damage = 5.0f;
+        body.AddForce(direction * m_TossForce + Vector2.up * 5.0f, ForceMode2D.Impulse);
     }
 }
