@@ -6,5 +6,9 @@ public enum Orientation
     Top,
     Left,
     Right,
-    Bottom
+    Bottom,
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight
 }

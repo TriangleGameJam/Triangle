@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 
@@ -7,6 +8,14 @@ using System.Collections.Generic;
 /// </summary>
 public class MomBodyMotor : MonoBehaviour 
 {
+    /// <summary>
+    /// An internal state variable for the mom.
+    /// </summary>
+    private enum State
+    {
+        Waiting,
+        Moving
+    }
     /// <summary>
     /// How many body parts to create initially.
     /// </summary>
@@ -33,6 +42,11 @@ public class MomBodyMotor : MonoBehaviour
     [SerializeField]
     private float m_WaitTime = 1.0f;
     /// <summary>
+    /// Defines the min and max region areas for top and bottom vector generation.
+    /// </summary>
+    [SerializeField]
+    private Vector2 m_MinMaxYBounds = new Vector2(10.0f, 20.0f);
+    /// <summary>
     /// CurrentTime should only be within values of 0 to 1
     /// </summary>
     private float m_CurrentTime = 0.0f;
@@ -43,25 +57,22 @@ public class MomBodyMotor : MonoBehaviour
     /// <summary>
     /// The last position the character was at.
     /// </summary>
-    private Vector3 m_LastPosition = Vector3.zero;
+    private Vector3 m_CurrentPosition = Vector3.zero;
     /// <summary>
     /// A list of body parts the motor controls
     /// </summary>
     private List<MomBodyPart> m_Parts = new List<MomBodyPart>();
     /// <summary>
-    /// The orientation to generate a position for.
+    /// The current state of the body motor.
     /// </summary>
-    private Orientation m_OrientationTarget = Orientation.Top;
     private State m_State = State.Waiting;
 
-    private Vector2 m_MinMaxYBounds = new Vector2(10.0f, 20.0f);
-    
-    private enum State
-    {
-        Waiting,
-        Moving
-    }
+    [SerializeField]
+    private MomBodyBehaviour m_Behaviour = null;
 
+    /// <summary>
+    /// Start like method. Does error checking and what not to see if the motor is good to run or naw.
+    /// </summary>
     private void OnEnable()
     {
         ///Check requirements
@@ -114,62 +125,71 @@ public class MomBodyMotor : MonoBehaviour
                 m_Parts[i].movementSpeed = initialMovementSpeed * i * 2;
             }
         }
-        StartCoroutine(GoalReachedRoutine());
+        if(m_Behaviour != null)
+        {
+            m_Behaviour.motor = this;
+            StartCoroutine(GoalReachedRoutine());
+        }
+    }
+
+    private void OnDisable()
+    {
+        for(int i = m_Parts.Count - 1; i >= 0; i--)
+        {
+            Destroy(m_Parts[i]);
+        }
+        m_Parts.Clear();
     }
 
     private void Update()
     {
         m_CurrentTime += Time.deltaTime * m_MovementSpeed;
+
+        if (m_Behaviour != null)
+        {
+            m_Behaviour.UpdateState();
+        }
         switch(m_State)
         {
             case State.Moving:
                 {
                     if (m_CurrentTime > 1.0f)
                     {
-                        m_Head.position = Vector3.Lerp(m_LastPosition, m_TargetPosition, 1.0f);
-                        StartCoroutine(GoalReachedRoutine());
+                        m_Head.position = Vector3.Lerp(m_CurrentPosition, m_TargetPosition, 1.0f);
+                        m_CurrentTime = 0.0f;
                     }
                     else
                     {
-                        m_Head.position = Vector3.Lerp(m_LastPosition, m_TargetPosition, m_CurrentTime);
+                        m_Head.position = Vector3.Lerp(m_CurrentPosition, m_TargetPosition, m_CurrentTime);
                     }
                 }
                 break;
-            case State.Waiting:
-
-                break;
         }
+
+       
         
+    }
+
+    public void GoalReached()
+    {
+        StartCoroutine(GoalReachedRoutine());
     }
     /// <summary>
     /// The routine which runs a delay when a goal has been reached.
     /// </summary>
     /// <returns></returns>
-    private IEnumerator<YieldInstruction> GoalReachedRoutine()
+    private IEnumerator GoalReachedRoutine()
     {
-        m_State = State.Waiting;
-        yield return new WaitForSeconds(m_WaitTime);
-        GenerateNextPosition();
-        m_State = State.Moving;
-        m_CurrentTime = 0.0f;
-    }
-    /// <summary>
-    /// Generates the next position for the head to move to.
-    /// The rest of the body parts should follow the head.
-    /// </summary>
-    private void GenerateNextPosition()
-    {
-        m_CurrentTime = 0.0f;
-        m_LastPosition = m_TargetPosition;
-        if(m_OrientationTarget == Orientation.Top)
+        if(m_Behaviour != null)
         {
-            m_OrientationTarget = Orientation.Bottom;
+            m_Behaviour.OnGoalReached();
+            yield return m_Behaviour.Yield();
+            m_Behaviour.OnNewGoal();
         }
         else
         {
-            m_OrientationTarget = Orientation.Top;
+            yield return null;
         }
-        m_TargetPosition = GeneratePosition(m_OrientationTarget);
     }
 
     /// <summary>
@@ -177,7 +197,7 @@ public class MomBodyMotor : MonoBehaviour
     /// </summary>
     /// <param name="aOrientation"></param>
     /// <returns></returns>
-    private Vector3 GeneratePosition(Orientation aOrientation)
+    public Vector3 GeneratePosition(Orientation aOrientation)
     {
         //y top = 5.24
         //y bottom = -5
@@ -197,15 +217,59 @@ public class MomBodyMotor : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.magenta * 0.65f;
-        Gizmos.DrawSphere(m_LastPosition, 0.15f);
-        Gizmos.DrawLine(m_LastPosition, m_TargetPosition);
+        Gizmos.DrawSphere(m_CurrentPosition, 0.15f);
+        Gizmos.DrawLine(m_CurrentPosition, m_TargetPosition);
         Gizmos.DrawSphere(m_TargetPosition, 0.15f);
     }
 
+    /// <summary>
+    /// Sets the state to moving.
+    /// </summary>
+    public void BeginMove()
+    {
+        m_State = State.Moving;
+    }
+    /// <summary>
+    /// Sets the state to waiting.
+    /// </summary>
+    public void BeginWait()
+    {
+        m_State = State.Waiting;
+    }
+
+    public float movementSpeed
+    {
+        get { return m_MovementSpeed; }
+        set { m_MovementSpeed = value; }
+    }
+    public float waitTime
+    {
+        get { return m_WaitTime; }
+        set { m_WaitTime = value; }
+    }
+    public Vector3 targetPosition
+    {
+        get { return m_TargetPosition; }
+        set { m_TargetPosition = value; }
+    }
+    public Vector3 currentPosition
+    {
+        get { return m_CurrentPosition; }
+        set { m_CurrentPosition = value; }
+    }
     public float currentTime
     {
         get { return m_CurrentTime; }
         set { m_CurrentTime = value; }
+    }
+
+    public bool isWaiting
+    {
+        get { return m_State == State.Waiting; }
+    }
+    public bool isMoving
+    {
+        get { return m_State == State.Moving; }
     }
 
 }
