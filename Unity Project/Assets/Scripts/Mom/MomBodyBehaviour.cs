@@ -25,9 +25,7 @@ public class MomBodyBehaviour : ScriptableObject
 
     private MomBodyMotor m_Motor = null;
     [SerializeField]
-    private float m_WaitDelay = 1.0f;
-    [SerializeField]
-    private Orientation m_Orientation = Orientation.Top;
+    protected Orientation m_Orientation = Orientation.Top;
 
     /// <summary>
     /// A callback for when the object gets created.
@@ -51,10 +49,7 @@ public class MomBodyBehaviour : ScriptableObject
     {
         if(isMoving)
         {
-            if (currentTime > 1.0f)
-            {
-                m_Motor.GoalReached();
-            }
+            
         }
         else if(isWaiting)
         {
@@ -68,14 +63,6 @@ public class MomBodyBehaviour : ScriptableObject
     public virtual void OnGoalReached()
     {
         m_Motor.BeginWait();
-    }
-    /// <summary>
-    /// A yield statement for right after the AI reaches their goal
-    /// </summary>
-    /// <returns></returns>
-    public virtual IEnumerator Yield()
-    {
-        yield return new WaitForSeconds(m_WaitDelay);
     }
     /// <summary>
     /// A callback for when a new goal should be made on the AI.
@@ -102,6 +89,12 @@ public class MomBodyBehaviour : ScriptableObject
             m_Orientation = Orientation.Top;
         }
         m_Motor.targetPosition = m_Motor.GeneratePosition(m_Orientation);
+    }
+
+    public virtual void OnBehaviourSet()
+    {
+        motor.currentTime = 0.0f;
+        movementSpeed = 0.3f;
     }
     /// <summary>
     /// An accessor to the motor component.

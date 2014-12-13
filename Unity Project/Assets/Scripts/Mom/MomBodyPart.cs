@@ -6,26 +6,111 @@ using System.Collections;
 /// </summary>
 public class MomBodyPart : MonoBehaviour 
 {
+    private enum State
+    {
+        Dead,
+        Vulnerable,
+        Regenerating,
+        Attached
+    }
+
     [SerializeField]
     private Transform m_Target = null;
+    [SerializeField]
+    private MomBodyMotor m_Motor = null;
     [SerializeField]
     private float m_Distance = 1.0f;
     [SerializeField]
     private float m_MovementSpeed = 2.0f;
+
+    [SerializeField]
+    private float m_RecouperateTimer = 5.0f;
+    
+
+    private State m_State = State.Attached;
+    private float m_CurrentTime = 0.0f;
+    
 	
 	// Update is called once per frame
 	void Update () 
     {
-	    //Calculate the direction from the target to this transform
-        Vector3 direction = (transform.position - m_Target.position).normalized;
-        Vector3 targetPoint = m_Target.position + direction * m_Distance;
-        transform.position = Vector3.Lerp(transform.position, targetPoint, Time.deltaTime * m_MovementSpeed);
+        switch(m_State)
+        {
+            case State.Attached:
+                if (m_Target != null)
+                {
+                    //Calculate the direction from the target to this transform
+                    Vector3 direction = (transform.position - m_Target.position).normalized;
+                    Vector3 targetPoint = m_Target.position + direction * m_Distance;
+                    transform.position = Vector3.Lerp(transform.position, targetPoint, Time.deltaTime * m_MovementSpeed);
+                    m_CurrentTime = 0.0f;
+                }
+                break;
+            case State.Vulnerable:
+                if(m_Motor != null)
+                {
+                    m_CurrentTime += Time.deltaTime;
+                    if(m_CurrentTime > m_RecouperateTimer)
+                    {
+                        MomBodyPart part = m_Motor.GetBack(this);
+                        if(part != null)
+                        {
+                            m_Target = part.transform;
+                            m_State = State.Regenerating;
+                            m_CurrentTime = 0.0f;
+                        }
+                    }
+                }
+                break;
+            case State.Regenerating:
+                if(m_Target != null)
+                {
+                    m_CurrentTime += Time.deltaTime;
+                    Vector3 direction = (transform.position - m_Target.position).normalized;
+                    Vector3 targetPoint = m_Target.position + direction * m_Distance;
+                    transform.position = Vector3.Lerp(transform.position, targetPoint, m_CurrentTime);
+                    if(m_CurrentTime > 1.0f)
+                    {
+                        m_State = State.Attached;
+                        m_CurrentTime = 0.0f;
+                    }
+                }
+                break;
+            default:
+                //Dead:
+                break;
+        }
+      
+        
 	}
+
+    public void OnTriggerEnter(Collider aCollider)
+    {
+        if(m_State == State.Attached)
+        {
+            //TODO: Check for a projectile hit and then detach
+        }
+        else if(m_State == State.Vulnerable)
+        {
+            //TODO: Check for player contact. Destroy body part.
+        }
+    }
+
+    public void OnDetached()
+    {
+        m_State = State.Vulnerable;
+    }
+
 
     public Transform target
     {
         get { return m_Target; }
         set { m_Target = value; }
+    }
+    public MomBodyMotor motor
+    {
+        get { return m_Motor; }
+        set { m_Motor = value; }
     }
     public float distance
     {
@@ -36,5 +121,13 @@ public class MomBodyPart : MonoBehaviour
     {
         get { return m_MovementSpeed; }
         set { m_MovementSpeed = value; }
+    }
+    public bool isActive
+    {
+        get { return m_State == State.Regenerating || m_State == State.Attached; }
+    }
+    public bool isAttached
+    {
+        get { return m_State == State.Attached; }
     }
 }

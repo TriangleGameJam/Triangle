@@ -79,16 +79,19 @@ public class MomBodyMotor : MonoBehaviour
         if(m_Head == null)
         {
             enabled = false;
+            Debug.LogWarning("Missing head");
             return;
         }
         if(m_BodyPrefab == null)
         {
             enabled = false;
+            Debug.LogWarning("Missing body prefab");
             return;
         }
         if(m_BodyPartCount <= 0)
         {
             enabled = false;
+            Debug.LogWarning("Body count is to low, must 1 or greater.");
             return;
         }
         m_Parts.Clear();
@@ -104,12 +107,16 @@ public class MomBodyMotor : MonoBehaviour
             }
             m_Parts.Add(part);
             part.transform.parent = transform;
+            part.motor = this;
             obj.name = obj.name.Remove(obj.name.Length - 7) + "_" + i.ToString();
+            //UnityEngine.UI.Text text = obj.GetComponentInChildren<RectTransform>().GetComponentInChildren<UnityEngine.UI.Text>();
+            //text.text = i.ToString();
         }
         ///If there was no parts created (because of a bad prefab) then disable the object
         if(m_Parts.Count == 0)
         {
             enabled = false;
+            Debug.LogWarning("No body parts created");
             return;
         }
         float initialMovementSpeed = m_Parts[0].movementSpeed;
@@ -145,8 +152,17 @@ public class MomBodyMotor : MonoBehaviour
     {
         m_CurrentTime += Time.deltaTime * m_MovementSpeed;
 
+        if(Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            if (m_Parts[3].isAttached)
+            {
+                Detach(m_Parts[3]);
+            }
+        }
+
         if (m_Behaviour != null)
         {
+            m_Behaviour.motor = this;
             m_Behaviour.UpdateState();
         }
         switch(m_State)
@@ -157,6 +173,7 @@ public class MomBodyMotor : MonoBehaviour
                     {
                         m_Head.position = Vector3.Lerp(m_CurrentPosition, m_TargetPosition, 1.0f);
                         m_CurrentTime = 0.0f;
+                        GoalReached();
                     }
                     else
                     {
@@ -165,10 +182,9 @@ public class MomBodyMotor : MonoBehaviour
                 }
                 break;
         }
-
-       
-        
     }
+
+
 
     public void GoalReached()
     {
@@ -182,8 +198,10 @@ public class MomBodyMotor : MonoBehaviour
     {
         if(m_Behaviour != null)
         {
+            m_Behaviour.motor = this;
             m_Behaviour.OnGoalReached();
-            yield return m_Behaviour.Yield();
+            yield return new WaitForSeconds(m_WaitTime);
+            m_CurrentTime = 0.0f;
             m_Behaviour.OnNewGoal();
         }
         else
@@ -237,6 +255,67 @@ public class MomBodyMotor : MonoBehaviour
         m_State = State.Waiting;
     }
 
+    public void Detach(MomBodyPart aPart)
+    {
+        for(int i = 0; i < m_Parts.Count; i++)
+        {
+            if(m_Parts[i] == aPart)
+            {
+                MomBodyPart next = null;
+                MomBodyPart previous = null;
+                MomBodyPart current = m_Parts[i];
+                if(i > 0)
+                {
+                    next = m_Parts[i - 1];
+                }
+                if(i < m_Parts.Count -1)
+                {
+                    previous = m_Parts[i + 1];
+                }
+
+                if(previous != null && next != null)
+                {
+                    previous.target = next.transform;
+                }
+                current.target = null;
+                current.OnDetached();
+                m_Parts.Remove(current);
+                m_Parts.Add(current);
+                break;
+            }
+        }
+    }
+    public MomBodyPart GetBack(MomBodyPart aSender)
+    {
+        for (int i = m_Parts.Count - 1; i >= 0; i--)
+        {
+            if (m_Parts[i].isActive && m_Parts[i] != aSender)
+            {
+                return m_Parts[i];
+            }
+        }        
+        return null;
+    }
+
+    public Vector3 GetRandomPosition()
+    {
+        for(int i = 0; i < m_Parts.Count; i++)
+        {
+            int randomNumber = Random.Range(0, m_Parts.Count - 1);
+            if(!m_Parts[i].isActive)
+            {
+                continue;
+            }
+            return m_Parts[i].transform.position;
+        }
+        return m_Head.transform.position;
+    }
+
+    public void RefreshBehaviour()
+    {
+
+    }
+
     public float movementSpeed
     {
         get { return m_MovementSpeed; }
@@ -270,6 +349,12 @@ public class MomBodyMotor : MonoBehaviour
     public bool isMoving
     {
         get { return m_State == State.Moving; }
+    }
+
+    public MomBodyBehaviour currentBehaviour
+    {
+        get { return m_Behaviour; }
+        set { m_Behaviour = value; }
     }
 
 }
