@@ -42,6 +42,7 @@ public class MomSquareBehaviour : MomBodyBehaviour
         {
             m_CurrentTime = 0.0f;
             movementSpeed += m_Increment;
+            movementSpeed = Mathf.Clamp(movementSpeed, 0.0f, 2.0f);
         }
     }
 

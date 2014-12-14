@@ -313,7 +313,7 @@ public class MomBodyMotor : MonoBehaviour
 
     public void RefreshBehaviour()
     {
-
+        currentBehaviour.OnBehaviourSet();
     }
 
     public float movementSpeed
