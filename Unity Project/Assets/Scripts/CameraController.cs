@@ -11,6 +11,8 @@ public class CameraController : MonoBehaviour
     [SerializeField]
     private Vector2 m_Offset = Vector2.zero;
     private Rect m_BoundingRect = new Rect();
+
+    private Vector2 m_ShakeAmount = Vector2.zero;
 	// Use this for initialization
 	void Start () 
     {
@@ -31,7 +33,15 @@ public class CameraController : MonoBehaviour
             pos.x = Mathf.Clamp(pos.x, m_BoundingRect.x + m_Offset.x, m_BoundingRect.width + m_Offset.x);
             pos.y = Mathf.Clamp(pos.y, m_BoundingRect.height + m_Offset.y, m_BoundingRect.y + m_Offset.y);
             transform.position = pos;
+            transform.position += new Vector3(m_ShakeAmount.x, m_ShakeAmount.y, 0.0f);
+
         }
 	}
+
+    public Vector2 shakeAmount
+    {
+        get { return m_ShakeAmount; }
+        set { m_ShakeAmount = value; }
+    }
 
 }

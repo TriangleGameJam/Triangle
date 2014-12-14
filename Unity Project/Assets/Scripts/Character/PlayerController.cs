@@ -55,6 +55,10 @@ public class PlayerController : MonoBehaviour
 
     private Vector2 m_Position;
 
+    [SerializeField]
+    private CameraShake m_CameraShake = null;
+    [SerializeField]
+    private float m_CameraShakeTime = 0.5f;
     private List<IAbilityHandler> m_AbilityHandlers = new List<IAbilityHandler>();
 
     #endregion
@@ -78,6 +82,8 @@ public class PlayerController : MonoBehaviour
 	
 	void Update () 
     {
+        NathansHack();
+
         // remove buff after 10 secs
         if ((Time.time * 1000) - m_BuffTime >= BUFF_TIME && m_DamageBuff != 0)
         {
@@ -436,10 +442,32 @@ public class PlayerController : MonoBehaviour
 
     public void ExecuteAbility(AbilityType aAbility)
     {
+        m_CameraShake.Shake(m_CameraShakeTime);
         if(m_AbilityHandlers.Count > 0)
         {
             Debug.Log("Executing ability " + aAbility.ToString());
             m_AbilityHandlers.ForEach(Element => Element.OnExecuteAbility(m_Enemy, aAbility));
+        }
+    }
+
+    public void NathansHack()
+    {
+        transform.rotation = Quaternion.identity;
+        if(Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            ExecuteAbility(AbilityType.JayZ);
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            ExecuteAbility(AbilityType.TableFlip);
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            ExecuteAbility(AbilityType.SassBlast);
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            ExecuteAbility(AbilityType.Slouch);
         }
     }
 
