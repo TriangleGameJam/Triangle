@@ -17,7 +17,6 @@ public class SassAttack : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {        
         _timeAlive += Time.deltaTime;
-        float newZRot = transform.rotation.z + _zRotSpeed;
         transform.Rotate(new Vector3(0, 0, _zRotSpeed));
 
         if (_timeAlive > _lifetime)
