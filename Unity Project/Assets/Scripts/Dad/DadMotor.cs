@@ -32,6 +32,8 @@ public class DadMotor : MonoBehaviour
     [SerializeField]
     private float m_TossForce = 0.0f;
     [SerializeField]
+    private float m_TossAngularForce = 45.0f;
+    [SerializeField]
     private GameObject m_TossBeerPrefab = null;
 
     [SerializeField]
@@ -39,8 +41,17 @@ public class DadMotor : MonoBehaviour
     private float m_ActionTimer = 0.0f;
 
     private State m_State = State.Action1;
-    private float m_StateSwitchTimer = 30.0f;
+    [SerializeField]
+    private float[] m_StateSwitchTimers = new float[] { 30.0f, 5.0f };
     private float m_StateTimer = 0.0f;
+
+    private int m_InterruptCount = 0;
+    [SerializeField]
+    private int m_MaxInterrupts = 6;
+    [SerializeField]
+    private float m_InterruptReset = 25.0f;
+    [SerializeField]
+    private GameObject m_LaserBeam = null;
 
 	// Use this for initialization
 	void Start () 
@@ -89,14 +100,17 @@ public class DadMotor : MonoBehaviour
                         StartCoroutine(TossBeerRoutine());
                         m_ActionTimer = 0.0f;
                     }
-                    if (m_StateTimer > m_StateSwitchTimer)
-                    { 
+                    if (m_StateTimer > m_StateSwitchTimers[0])
+                    {
+                        m_State = State.Action2;
+                        m_StateTimer = 0.0f;
+                        StartCoroutine(DissapointmentBeam());
                     }
                 }
                 break;
             case State.Action2:
                 {
-
+                    m_StateTimer += Time.deltaTime;
                 }
                 break;
         }
@@ -137,6 +151,19 @@ public class DadMotor : MonoBehaviour
         TossBeer();
 
     }
+
+    IEnumerator DissapointmentBeam()
+    {
+        Debug.Log("Phase 2");
+        int randomInt = Random.Range(0, m_Waypoints.Count);
+        m_LaserBeam.SetActive(true);
+        m_LaserBeam.transform.rotation = Quaternion.identity;
+        transform.position = m_Waypoints[randomInt].position;
+        yield return new WaitForSeconds(m_StateSwitchTimers[1]);
+        m_LaserBeam.SetActive(false);
+        m_State = State.Action1;
+    }
+
     private void TossBeer()
     {
         Vector2 direction = (m_Player.transform.position - transform.position).normalized;
@@ -148,5 +175,26 @@ public class DadMotor : MonoBehaviour
         projectile.target = m_Player;
         projectile.damage = 5.0f;
         body.AddForce(direction * m_TossForce + Vector2.up * 5.0f, ForceMode2D.Impulse);
+        body.angularVelocity = m_TossAngularForce;
+    }
+
+    public void Interrupt()
+    {
+        if(m_InterruptCount == 0)
+        {
+            StartCoroutine(ResetInterrupts());
+        }
+        m_InterruptCount++;
+        if(m_InterruptCount < m_MaxInterrupts)
+        {
+            Debug.Log("Interrupted!");
+            m_ActionTimer = 0.0f;
+        }
+    }
+
+    IEnumerator ResetInterrupts()
+    {
+        yield return new WaitForSeconds(m_InterruptReset);
+        m_InterruptCount = 0;
     }
 }

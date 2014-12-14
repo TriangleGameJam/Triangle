@@ -22,7 +22,7 @@ public class DaFlip : MonoBehaviour
         yield return new WaitForSeconds(m_FlipDelay);
         rigidbody2D.AddForce(Vector2.up * m_KnockupForce, ForceMode2D.Impulse);
         rigidbody2D.angularVelocity = m_RotationSpeed;
-        yield return new WaitForSeconds(m_FlipDelay);
+        yield return new WaitForSeconds(m_FlipDelay*5.0f);
         GameObject obj = (GameObject)Instantiate(m_SwappedObject, transform.position, transform.rotation);
         Destroy(gameObject);
     }

@@ -32,6 +32,7 @@ public class SassBlast : MonoAbilityHandler
             Quaternion rot = Quaternion.identity;
 
             Instantiate(_sassAttack, pos, rot);
+            ScreenShake();
         }
     }
 }

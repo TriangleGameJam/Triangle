@@ -24,4 +24,6 @@ public class SassPositioning : MonoBehaviour
 	void Update () {
         transform.position = _bum.transform.position;
 	}
+
+    
 }

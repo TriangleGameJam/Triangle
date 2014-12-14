@@ -21,6 +21,7 @@ public class MomBodyMotor : MonoBehaviour
     /// </summary>
     [SerializeField]
     private int m_BodyPartCount = 0;
+    private int m_CurrentBodyParts = 0;
     /// <summary>
     /// A prefab dedicated to 
     /// </summary>
@@ -137,6 +138,9 @@ public class MomBodyMotor : MonoBehaviour
             m_Behaviour.motor = this;
             StartCoroutine(GoalReachedRoutine());
         }
+
+        m_BodyPartCount = m_Parts.Count;
+        m_CurrentBodyParts = m_Parts.Count;
     }
 
     private void OnDisable()
@@ -152,13 +156,13 @@ public class MomBodyMotor : MonoBehaviour
     {
         m_CurrentTime += Time.deltaTime * m_MovementSpeed;
 
-        if(Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            if (m_Parts[3].isAttached)
-            {
-                Detach(m_Parts[3]);
-            }
-        }
+        //if(Input.GetKeyDown(KeyCode.Alpha1))
+        //{
+        //    if (m_Parts[3].isAttached)
+        //    {
+        //        Detach(m_Parts[3]);
+        //    }
+        //}
 
         if (m_Behaviour != null)
         {
@@ -277,6 +281,7 @@ public class MomBodyMotor : MonoBehaviour
                 {
                     previous.target = next.transform;
                 }
+                Debug.Log("Detaching " + current.name);
                 current.target = null;
                 current.OnDetached();
                 m_Parts.Remove(current);
@@ -285,6 +290,17 @@ public class MomBodyMotor : MonoBehaviour
             }
         }
     }
+
+    public void Destroy(MomBodyPart aPart)
+    {
+        m_CurrentBodyParts--;
+        Cutoff.instance.widthPercent = (float)m_CurrentBodyParts / (float)m_BodyPartCount;
+        if(m_CurrentBodyParts == 0)
+        {
+            GameConditions.instance.OnEnemyDeath();
+        }
+    }
+
     public MomBodyPart GetBack(MomBodyPart aSender)
     {
         for (int i = m_Parts.Count - 1; i >= 0; i--)
