@@ -20,7 +20,7 @@ public class SassImproved : MonoBehaviour {
         _timeAlive += Time.deltaTime;
         if (_changeColorTime > .1f)
         {
-            Debug.Log("This works");
+            //Debug.Log("This works");
             float rColor = Random.Range(0.0f, 1.0f);
             float gColor = Random.Range(0.0f, 1.0f);
             float bColor = Random.Range(0.0f, 1.0f);

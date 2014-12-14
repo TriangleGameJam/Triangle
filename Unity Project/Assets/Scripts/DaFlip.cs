@@ -9,6 +9,8 @@ public class DaFlip : MonoBehaviour
     private float m_KnockupForce = 10.0f;
     [SerializeField]
     private float m_RotationSpeed = 5.0f;
+    [SerializeField]
+    private GameObject m_SwappedObject = null;
 	// Use this for initialization
 	void Start () 
     {
@@ -20,5 +22,8 @@ public class DaFlip : MonoBehaviour
         yield return new WaitForSeconds(m_FlipDelay);
         rigidbody2D.AddForce(Vector2.up * m_KnockupForce, ForceMode2D.Impulse);
         rigidbody2D.angularVelocity = m_RotationSpeed;
+        yield return new WaitForSeconds(m_FlipDelay);
+        GameObject obj = (GameObject)Instantiate(m_SwappedObject, transform.position, transform.rotation);
+        Destroy(gameObject);
     }
 }

@@ -48,10 +48,7 @@ public class BumMockup : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.W))
         {
-            Vector3 pos = transform.position;
-            Quaternion rot = Quaternion.identity;
 
-            Instantiate(_sassAttack, pos, rot);
         }
 	}
 }

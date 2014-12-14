@@ -3,6 +3,10 @@ using System.Collections;
 
 public class SassBlast : MonoAbilityHandler 
 {
+
+    [SerializeField]
+    private GameObject _sassAttack = null;
+
     private void Start()
     {
         InitPlayerController();
@@ -24,6 +28,10 @@ public class SassBlast : MonoAbilityHandler
         if (m_AbilityHandled == aAbility)
         {
             //TODO: The actions for SassBlast
+            Vector3 pos = transform.position;
+            Quaternion rot = Quaternion.identity;
+
+            Instantiate(_sassAttack, pos, rot);
         }
     }
 }
