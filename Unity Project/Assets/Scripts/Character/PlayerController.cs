@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Text;
 using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
 
 public class PlayerController : MonoBehaviour 
 {
@@ -52,6 +54,8 @@ public class PlayerController : MonoBehaviour
     private StringBuilder m_KeySequence = new StringBuilder();
 
     private Vector2 m_Position;
+
+    private List<IAbilityHandler> m_AbilityHandlers = new List<IAbilityHandler>();
 
     #endregion
 
@@ -146,19 +150,23 @@ public class PlayerController : MonoBehaviour
             switch (key)
             {
                 case KeyCode.Q:
-                    ShoulderShrug();
+                    ExecuteAbility(AbilityType.ShoulderShrug);
+                    //ShoulderShrug();
                     InputSequence(key.ToString());
                     break;
                 case KeyCode.W:
-                    SassBlast();
+                    ExecuteAbility(AbilityType.SassBlast);
+                    //SassBlast();
                     InputSequence(key.ToString());
                     break;
                 case KeyCode.E:
-                    WhatevaWave();
+                    ExecuteAbility(AbilityType.WhatevaWave);
+                    //WhatevaWave();
                     InputSequence(key.ToString());
                     break;
                 case KeyCode.R:
-                    Slouch();
+                    ExecuteAbility(AbilityType.Slouch);
+                    //Slouch();
                     InputSequence(key.ToString());
                     break;
             }
@@ -184,27 +192,31 @@ public class PlayerController : MonoBehaviour
     {
         switch(m_KeySequence.ToString())
         {
-            case "WEERQQ":
-                UnityEngine.Debug.Log("Do the Jay-Z");
+            case PlayerCombos.JAYZ:
+                //UnityEngine.Debug.Log("Do the Jay-Z");
                 m_KeySequence = new StringBuilder();
-                JayZ();
+                ExecuteAbility(AbilityType.JayZ);
+                //JayZ();
                 break;
-            case "WWEQRQ":
-                UnityEngine.Debug.Log("Do the Tableflip");
+            case PlayerCombos.TABLE_FLIP:
+                //UnityEngine.Debug.Log("Do the Tableflip");
                 m_KeySequence = new StringBuilder();
-                TableFlip();
+                ExecuteAbility(AbilityType.TableFlip);
+                //TableFlip();
                 break;
-            case "EQRQ":
+            case PlayerCombos.IM_NOT_LISTENING:
                 // GET FACING DIRECTION
-                UnityEngine.Debug.Log("Do the I'm Not Listening");
+                //UnityEngine.Debug.Log("Do the I'm Not Listening");
                 m_KeySequence = new StringBuilder();
-                ImNotListening();
+                ExecuteAbility(AbilityType.ImNotListening);
+                //ImNotListening();
                 break;
-            case "EEQ":
+            case PlayerCombos.WALK_AWAY:
                 // GET FACING DIRECTION
-                UnityEngine.Debug.Log("Do the Walk Away");
+                //UnityEngine.Debug.Log("Do the Walk Away");
                 m_KeySequence = new StringBuilder();
-                WalkAway();
+                //WalkAway();
+                ExecuteAbility(AbilityType.WalkAway);
                 break;
         }
         m_KeySequence = new StringBuilder();
@@ -277,18 +289,20 @@ public class PlayerController : MonoBehaviour
 
     /// <summary>
     /// The table is a long-ranged, low damage attack
+    /// Implemented in TableFlip.cs
     /// </summary>
     void TableFlip()
     {
-        CreateProjectile(m_Table, m_TableForce, 5.0f);
+        //CreateProjectile(m_Table, m_TableForce, 5.0f);
     }
 
     /// <summary>
     /// Short-ranged, high damage attack that needs to charge
+    /// Implemented in Jayz.cs
     /// </summary>
     void JayZ()
     {
-        CreateProjectile(m_Jayz, m_JayzForce, 10.0f);
+        //CreateProjectile(m_Jayz, m_JayzForce, 10.0f);
     }
 
     /// <summary>
@@ -315,37 +329,37 @@ public class PlayerController : MonoBehaviour
     #region Dodge
 
     /// <summary>
-    /// Dodge with ?
+    /// Dodge with, Implemented in WhatevaWave.cs
     /// </summary>
     void WhatevaWave()
     {
-        if ((Time.time * 1000) - m_DodgeTime < DODGE_TIME)
-        {
-            UnityEngine.Debug.Log("Already dodging");
-        }
-        else
-        {
-            UnityEngine.Debug.Log("WHATEVAWAVE");
-            m_DodgeTime = Time.time;
-            m_isDodging = true;
-        }
+        //if ((Time.time * 1000) - m_DodgeTime < DODGE_TIME)
+        //{
+        //    UnityEngine.Debug.Log("Already dodging");
+        //}
+        //else
+        //{
+        //    UnityEngine.Debug.Log("WHATEVAWAVE");
+        //    m_DodgeTime = Time.time;
+        //    m_isDodging = true;
+        //}
     }
 
     /// <summary>
-    /// Dodge with dust cloud?
+    /// Dodge with dust cloud, Implemented in WalkAway.cs
     /// </summary>
     void WalkAway()
     {
-        if ((Time.time * 1000) - m_DodgeTime < DODGE_TIME)
-        {
-            UnityEngine.Debug.Log("Already dodging");
-        }
-        else
-        {
-            UnityEngine.Debug.Log("WALKAWAY");
-            m_DodgeTime = Time.time;
-            m_isDodging = true;
-        }
+        //if ((Time.time * 1000) - m_DodgeTime < DODGE_TIME)
+        //{
+        //    UnityEngine.Debug.Log("Already dodging");
+        //}
+        //else
+        //{
+        //    UnityEngine.Debug.Log("WALKAWAY");
+        //    m_DodgeTime = Time.time;
+        //    m_isDodging = true;
+        //}
     }
 
     #endregion
@@ -353,20 +367,20 @@ public class PlayerController : MonoBehaviour
     #region Buffs
 
     /// <summary>
-    /// Buff
+    /// Buff, Implemented in Slouch.cs
     /// </summary>
     void Slouch()
     {
-        if ((Time.time * 1000) - m_BuffTime < BUFF_COOLDOWN)
-        {
-            UnityEngine.Debug.Log("Buff is on cooldown");
-        }
-        else
-        {
-            UnityEngine.Debug.Log("Buff has been applied");
-            m_BuffTime = Time.time * 1000;
-            m_DamageBuff += DAMAGE_BUFF;
-        }
+        //if ((Time.time * 1000) - m_BuffTime < BUFF_COOLDOWN)
+        //{
+        //    UnityEngine.Debug.Log("Buff is on cooldown");
+        //}
+        //else
+        //{
+        //    UnityEngine.Debug.Log("Buff has been applied");
+        //    m_BuffTime = Time.time * 1000;
+        //    m_DamageBuff += DAMAGE_BUFF;
+        //}
     }
 
     #endregion
@@ -401,5 +415,52 @@ public class PlayerController : MonoBehaviour
         {
             m_Health -= dmg;
         }
+    }
+
+    /// <summary>
+    /// Used to register for events
+    /// </summary>
+    /// <param name="aHandler"></param>
+    public void Register(IAbilityHandler aHandler)
+    {
+        m_AbilityHandlers.Add(aHandler);
+    }
+    /// <summary>
+    /// Used to unregister from events.
+    /// </summary>
+    /// <param name="aHandler"></param>
+    public void Unregister(IAbilityHandler aHandler)
+    {
+        m_AbilityHandlers.Remove(aHandler);
+    }
+
+    public void ExecuteAbility(AbilityType aAbility)
+    {
+        if(m_AbilityHandlers.Count > 0)
+        {
+            Debug.Log("Executing ability " + aAbility.ToString());
+            m_AbilityHandlers.ForEach(Element => Element.OnExecuteAbility(m_Enemy, aAbility));
+        }
+    }
+
+    public float buffTime
+    {
+        get { return m_BuffTime; }
+        set { m_BuffTime = value; }
+    }
+    public float damageBuff
+    {
+        get { return m_DamageBuff; }
+        set { m_DamageBuff = value; }
+    }
+    public float dodgeTime
+    {
+        get { return m_DodgeTime; }
+        set { m_DodgeTime = value; }
+    }
+    public bool isDodging
+    {
+        get { return m_isDodging; }
+        set { m_isDodging = value; }
     }
 }
