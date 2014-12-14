@@ -37,7 +37,7 @@ public class SisterAI : MonoBehaviour
     {
         if (Mathf.Abs(transform.position.magnitude - _hobo.transform.position.magnitude) < 1)
         {
-            GetComponent<DialogMockup>()._showMenu = true;
+            GetComponent<SisterDialog>()._showMenu = true;
         }
         
         if (_isBattling)
