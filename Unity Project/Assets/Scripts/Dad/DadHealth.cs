@@ -29,6 +29,7 @@ public class DadHealth : MonoBehaviour
             if (m_CurrentHealth < 0.0f)
             {
                 gameObject.SetActive(false);
+                GameConditions.instance.OnEnemyDeath();
             }
         }
         else if(proj != null)

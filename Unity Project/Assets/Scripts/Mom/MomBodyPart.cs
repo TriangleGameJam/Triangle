@@ -73,6 +73,8 @@ public class MomBodyPart : MonoBehaviour
                     {
                         m_State = State.Attached;
                         m_CurrentTime = 0.0f;
+                        collider2D.isTrigger = true;
+                        rigidbody2D.isKinematic = true;
                     }
                 }
                 break;
@@ -84,15 +86,41 @@ public class MomBodyPart : MonoBehaviour
         
 	}
 
-    public void OnTriggerEnter(Collider aCollider)
+    public void OnTriggerEnter2D(Collider2D aCollider)
     {
         if(m_State == State.Attached)
         {
+            Projectile proj = aCollider.GetComponent<Projectile>();
             //TODO: Check for a projectile hit and then detach
+            if(proj != null && proj.sender != transform)
+            {
+                m_Motor.Detach(this);
+                collider2D.isTrigger = false;
+                rigidbody2D.isKinematic = false;
+            }
+            
         }
         else if(m_State == State.Vulnerable)
         {
             //TODO: Check for player contact. Destroy body part.
+            if(aCollider.GetComponent<PlayerController>())
+            {
+                gameObject.SetActive(false);
+                m_Motor.Destroy(this);
+            }
+        }
+    }
+
+    public void OnCollisionEnter2D(Collision2D aCollision)
+    {
+        if (m_State == State.Vulnerable)
+        {
+            //TODO: Check for player contact. Destroy body part.
+            if (aCollision.collider.GetComponent<PlayerController>())
+            {
+                gameObject.SetActive(false);
+                m_Motor.Destroy(this);
+            }
         }
     }
 

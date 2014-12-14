@@ -17,13 +17,6 @@ public class LaserBeamMotor : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
     {
-        //transform.rotation = Quaternion.Euler(0.0f, -90.0f, m_CurrentRotation);
-        transform.position = transform.parent.position + Quaternion.Euler(0.0f,0.0f,m_CurrentRotation) * Vector3.up * m_Translation;
-
-        Vector3 direction = (transform.position - transform.parent.position).normalized;
-        transform.rotation = Quaternion.LookRotation(direction);
-
-        m_CurrentRotation += Time.deltaTime * m_OrbitSpeed;
-        m_CurrentRotation = Utilities.ClampAngle(m_CurrentRotation);
+        transform.Rotate(0.0f, 0.0f, m_OrbitSpeed * Time.deltaTime);
 	}
 }

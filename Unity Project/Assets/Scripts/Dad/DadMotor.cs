@@ -50,6 +50,8 @@ public class DadMotor : MonoBehaviour
     private int m_MaxInterrupts = 6;
     [SerializeField]
     private float m_InterruptReset = 25.0f;
+    [SerializeField]
+    private GameObject m_LaserBeam = null;
 
 	// Use this for initialization
 	void Start () 
@@ -102,17 +104,13 @@ public class DadMotor : MonoBehaviour
                     {
                         m_State = State.Action2;
                         m_StateTimer = 0.0f;
+                        StartCoroutine(DissapointmentBeam());
                     }
                 }
                 break;
             case State.Action2:
                 {
                     m_StateTimer += Time.deltaTime;
-                    if(m_StateTimer > m_StateSwitchTimers[1])
-                    {
-                        m_State = State.Action1;
-                        m_StateTimer = 0.0f;
-                    }
                 }
                 break;
         }
@@ -156,11 +154,14 @@ public class DadMotor : MonoBehaviour
 
     IEnumerator DissapointmentBeam()
     {
-        transform.position = Vector3.zero;
-        while(m_StateTimer < m_StateSwitchTimers[1])
-        {
-            yield return new WaitForEndOfFrame();
-        }
+        Debug.Log("Phase 2");
+        int randomInt = Random.Range(0, m_Waypoints.Count);
+        m_LaserBeam.SetActive(true);
+        m_LaserBeam.transform.rotation = Quaternion.identity;
+        transform.position = m_Waypoints[randomInt].position;
+        yield return new WaitForSeconds(m_StateSwitchTimers[1]);
+        m_LaserBeam.SetActive(false);
+        m_State = State.Action1;
     }
 
     private void TossBeer()

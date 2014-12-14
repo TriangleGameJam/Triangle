@@ -269,8 +269,20 @@ public class PlayerController : MonoBehaviour
                 m_IsGrounded = true;
                 m_PlayerAnimator.SetBool("Jumping", false);
             }
+        }
+        Projectile projectile = collision.collider.GetComponent<Projectile>();
+        if (projectile != null && projectile.sender != transform)
+        {
+            TakeDamage(projectile.damage);
+        }
+    }
 
-            
+    void OnTriggerEnter2D(Collider2D aCollider)
+    {
+        Projectile projectile = aCollider.GetComponent<Projectile>();
+        if(projectile != null && projectile.sender != transform)
+        {
+            TakeDamage(projectile.damage);
         }
     }
 
@@ -278,7 +290,7 @@ public class PlayerController : MonoBehaviour
     /// Subtract damage from player health
     /// </summary>
     /// <param name="dmg"></param>
-    void TakeDamage(int dmg)
+    void TakeDamage(float dmg)
     {
         if (m_IsDodging)
             return;
@@ -286,6 +298,7 @@ public class PlayerController : MonoBehaviour
         if (m_Health <= 0 || dmg > m_Health)
         {
             m_IsDead = true;
+            GameConditions.instance.OnPlayerDeath();
         }
         else
         {
