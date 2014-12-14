@@ -59,10 +59,6 @@ public class PlayerController : MonoBehaviour
 
     private Vector2 m_Position;
 
-    [SerializeField]
-    private CameraShake m_CameraShake = null;
-    [SerializeField]
-    private float m_CameraShakeTime = 0.5f;
     private List<IAbilityHandler> m_AbilityHandlers = new List<IAbilityHandler>();
 
     private Animator m_PlayerAnimator;
@@ -154,7 +150,7 @@ public class PlayerController : MonoBehaviour
                     break;
             }
         }
-        if (Input.GetButton("Jump"))
+        if (Input.GetButtonDown("Jump"))
         {
             if (m_IsGrounded)
             {
@@ -265,9 +261,16 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.transform.tag == "Ground" && !m_IsGrounded)
         {
-            Debug.Log("Touched Ground");
-            m_IsGrounded = true;
-            m_PlayerAnimator.SetBool("Jumping", false);
+            ///Added an additional collision check. This doesnt allow wall jumping :(
+            BoxCollider2D bCol = collider2D as BoxCollider2D;
+            if(collision.contacts[0].point.y < transform.position.y - bCol.size.y * 0.25f)
+            {
+                Debug.Log("Touched Ground");
+                m_IsGrounded = true;
+                m_PlayerAnimator.SetBool("Jumping", false);
+            }
+
+            
         }
     }
 
@@ -313,7 +316,6 @@ public class PlayerController : MonoBehaviour
 
     public void ExecuteAbility(AbilityType aAbility)
     {
-        m_CameraShake.Shake(m_CameraShakeTime);
         if(m_AbilityHandlers.Count > 0)
         {
             Debug.Log("Executing ability " + aAbility.ToString());

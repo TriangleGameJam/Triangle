@@ -33,6 +33,8 @@ public class Projectile : MonoBehaviour
     /// </summary>
     [SerializeField]
     private float m_Lifetime = 5.0f;
+    [SerializeField]
+    private bool m_Expire = false;
 
 	// Use this for initialization
 	protected virtual void Start () 
@@ -50,7 +52,7 @@ public class Projectile : MonoBehaviour
         ///Ignore self
         if(aInfo.collider.transform == m_Sender)
         {
-            Debug.Log("Ignoring Selt");
+            //Debug.Log("Ignoring Selt");
             return;
         }
         switch(m_DestroyFlags)
@@ -71,7 +73,10 @@ public class Projectile : MonoBehaviour
     IEnumerator LifeRoutine()
     {
         yield return new WaitForSeconds(m_Lifetime);
-        Destroy(gameObject);
+        if(m_Expire == true)
+        {
+            Destroy(gameObject);
+        }
     }
 
     public Transform sender

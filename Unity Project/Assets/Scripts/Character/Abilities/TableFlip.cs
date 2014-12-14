@@ -31,12 +31,12 @@ public class TableFlip : MonoAbilityHandler
             //TODO: The actions for TableFlip
             GameObject table;
             table = Instantiate(m_Table, transform.position, transform.rotation) as GameObject;
-            table.transform.rigidbody2D.velocity = transform.TransformDirection(Vector3.forward * 10);
             Projectile projectile = table.GetComponent<Projectile>();
             projectile.sender = transform.parent;
             projectile.target = aTarget.transform;
             Rigidbody2D body = table.GetComponent<Rigidbody2D>();
             body.AddForce(direction * m_TableForce, ForceMode2D.Impulse);
+            ScreenShake();
         }
     }
 }

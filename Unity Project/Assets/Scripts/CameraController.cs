@@ -33,7 +33,7 @@ public class CameraController : MonoBehaviour
             pos.x = Mathf.Clamp(pos.x, m_BoundingRect.x + m_Offset.x, m_BoundingRect.width + m_Offset.x);
             pos.y = Mathf.Clamp(pos.y, m_BoundingRect.height + m_Offset.y, m_BoundingRect.y + m_Offset.y);
             transform.position = pos;
-            transform.position += new Vector3(m_ShakeAmount.x, m_ShakeAmount.y, 0.0f);
+            transform.position += new Vector3(m_ShakeAmount.x * GameOptions.shakeAmount, m_ShakeAmount.y * GameOptions.shakeAmount, 0.0f);
 
         }
 	}

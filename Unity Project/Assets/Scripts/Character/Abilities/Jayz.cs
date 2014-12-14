@@ -38,6 +38,7 @@ public class Jayz : MonoAbilityHandler
             projectile.target = aTarget.transform;
             Rigidbody2D body = jayz.GetComponent<Rigidbody2D>();
             body.AddForce(direction * m_JayZForce, ForceMode2D.Impulse);
+            ScreenShake();
         }
     }
 }
