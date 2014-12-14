@@ -13,7 +13,7 @@ public class CellPhone : MonoBehaviour
 
     void Start()
     {
-        _bum = GameObject.Find("BumParent");
+        _bum = GameObject.Find("Player");
         Vector3 diff = _bum.transform.position - transform.position;
         diff.Normalize();
 
@@ -33,7 +33,7 @@ public class CellPhone : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D col)
     {
-        if (col.gameObject == _bum.gameObject)
+        if (col.gameObject.name == "Player")
         {
             Destroy(gameObject);            
         }

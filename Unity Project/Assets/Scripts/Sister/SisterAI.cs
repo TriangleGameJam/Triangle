@@ -4,9 +4,6 @@ using System.Collections.Generic;
 
 public class SisterAI : MonoBehaviour 
 {
-    float _moveSpeed = .05f;
-    float _speedChangeCount = 0.0f;
-    float _currentChangeSpeed;
     public bool _isBattling = false;
 
     float _spawnClotheTimer = 0.0f;
@@ -14,11 +11,14 @@ public class SisterAI : MonoBehaviour
     float _throwCellphoneTimer = 0.0f;
     float _throwCellphoneLimit = 2.0f;
     float _bieberRainTimer = 0.0f;
-    float _bieberRainLimit = 2.0f;
+    float _bieberRainLimit = 4.0f;
+    float _changePosTimer = 0.0f;
+    float _changePosLimit = 4.0f;
 
     GameObject _hobo;
     GameObject _clotheSpawns;
     GameObject _bieberSpawns;
+    GameObject _sisterSpawns;
     public GameObject _clothes;
     public GameObject _cellphone;
     public GameObject _bieber;
@@ -26,37 +26,23 @@ public class SisterAI : MonoBehaviour
 	// Use this for initialization
 	void Start () 
     {
-        _hobo = GameObject.Find("BumParent");
+        _hobo = GameObject.Find("Player");
         _clotheSpawns = GameObject.Find("ClothesPoints");
         _bieberSpawns = GameObject.Find("BieberRainPoints");
-        _currentChangeSpeed = Random.Range(.2f, 1.0f);
+        _sisterSpawns = GameObject.Find("SisterPoints");
 	}
 	
 	// Update is called once per frame
 	void Update () 
     {
-        if (Mathf.Abs(transform.position.magnitude - _hobo.transform.position.magnitude) < 1)
-        {
-            GetComponent<SisterDialog>()._showMenu = true;
-        }
+        //GetComponent<SisterDialog>()._showMenu = true;
         
         if (_isBattling)
         {
-            Vector3 newPos = new Vector3(transform.position.x + _moveSpeed, transform.position.y, transform.position.z);
-            transform.position = newPos;
-
-            _speedChangeCount += Time.deltaTime;
             _spawnClotheTimer += Time.deltaTime;
             _throwCellphoneTimer += Time.deltaTime;
             _bieberRainTimer += Time.deltaTime;
-
-            if (_speedChangeCount > _currentChangeSpeed)
-            {
-                _moveSpeed *= -1;
-                _currentChangeSpeed = Random.Range(.2f, 1.0f);
-                _speedChangeCount = 0;
-            }
-
+            _changePosTimer += Time.deltaTime;
             if (_spawnClotheTimer > _spawnClotheLimit)
             {
                 foreach (Transform t in _clotheSpawns.GetComponentInChildren<Transform>())
@@ -89,6 +75,20 @@ public class SisterAI : MonoBehaviour
                 }
 
                 _bieberRainTimer = 0;
+            }
+
+            if (_changePosTimer > _changePosLimit)
+            {
+                foreach (Transform t in _sisterSpawns.GetComponentsInChildren<Transform>())
+                {
+                    //25% chance of changing positions in each transform
+                    if (Random.Range(0.0f, 1.0f) < .25f)
+                    {
+                        transform.position = t.position;
+                    }
+                }
+
+                _changePosTimer = 0;
             }
         }
 	}

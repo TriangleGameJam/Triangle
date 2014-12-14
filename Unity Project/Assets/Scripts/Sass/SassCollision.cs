@@ -8,7 +8,7 @@ public class SassCollision : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        _hobo = GameObject.Find("BumParent").collider2D;
+        _hobo = GameObject.Find("Player").collider2D;
         Physics2D.IgnoreCollision(collider2D, _hobo);
 	}
 	

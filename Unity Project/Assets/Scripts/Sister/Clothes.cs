@@ -10,12 +10,12 @@ public class Clothes : MonoBehaviour
 
     void Start()
     {
-        _bum = GameObject.Find("BumParent");
+        _bum = GameObject.Find("Player");
     }
 
     void OnCollisionEnter2D(Collision2D col)
     {
-        if (col.gameObject.name == "BumParent")
+        if (col.gameObject.name == "Player")
         {
             Destroy(gameObject);
         }
