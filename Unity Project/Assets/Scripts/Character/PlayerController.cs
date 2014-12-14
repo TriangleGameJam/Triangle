@@ -4,11 +4,6 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
-/// <summary>
-/// Handles user input for main character
-/// Ctrl + M, Ctrl + L (or P) to stop hiding all code
-/// Ctrl + M, Ctrl + O to hide all code
-/// </summary>
 public class PlayerController : MonoBehaviour 
 {
     #region Constants
@@ -25,34 +20,35 @@ public class PlayerController : MonoBehaviour
 
     #region Properties
 
+    private float m_MoveSpeed = 0.05f;
+
     [SerializeField]
     private float m_JumpForce = 500;
-    private float m_MoveSpeed = 0.05f;
     private float m_Health;
+
+    [SerializeField]
     private bool m_IsGrounded;
     private float m_Time;
     private float m_DodgeTime;
     private float m_BuffTime;
     private bool m_IsFacingRight;
     private bool m_IsLookingUp;
-    private float m_DamageBuff;
-    private bool m_IsDodging;
-    private bool m_IsDead;
 
-    /// <summary>
-    /// Make it easier to do combos
-    /// </summary>
-    [SerializeField]
-    private bool NathansHackBool;
+    private float m_DamageBuff;
+
+    public bool m_isDodging;
+    public bool m_IsDead;
 
     [SerializeField]
     private GameObject m_Enemy;
 
     [SerializeField]
     private GameObject m_Table;
+    private float m_TableForce = 5.0f;
 
     [SerializeField]
     private GameObject m_Jayz;
+    private float m_JayzForce = 2.0f;
 
     private ArrayList m_KeysPressed = new ArrayList();
     private StringBuilder m_KeySequence = new StringBuilder();
@@ -64,9 +60,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private float m_CameraShakeTime = 0.5f;
     private List<IAbilityHandler> m_AbilityHandlers = new List<IAbilityHandler>();
-
-    private Animator m_PlayerAnimator;
-    private string m_CurrAnimation;
 
     #endregion
 
@@ -83,11 +76,8 @@ public class PlayerController : MonoBehaviour
         m_Health = 100;
         m_IsDead = false;
         m_IsGrounded = true;
-        m_IsDodging = false;
+        m_isDodging = false;
         m_DamageBuff = ZERO;
-        m_PlayerAnimator = GetComponent<Animator>();
-        m_CurrAnimation = string.Empty;
-        NathansHackBool = true;
 	}
 	
 	void Update () 
@@ -95,37 +85,33 @@ public class PlayerController : MonoBehaviour
         NathansHack();
 
         // remove buff after 10 secs
-        if ((Time.time * 1000) - m_BuffTime >= BUFF_TIME && m_DamageBuff > 0)
+        if ((Time.time * 1000) - m_BuffTime >= BUFF_TIME && m_DamageBuff != 0)
         {
-            Debug.Log("Buff removed");
+            UnityEngine.Debug.Log("Buff removed");
             m_DamageBuff = ZERO;
         }
         // stop dodging after 1/2 second
-        if ((Time.time * 1000) - m_DodgeTime >= DODGE_TIME && m_IsDodging)
+        if ((Time.time * 1000) - m_DodgeTime >= DODGE_TIME && m_isDodging)
         {
-            Debug.Log("Stopped dodging");
-            m_IsDodging = false;
+            UnityEngine.Debug.Log("Stopped dodging");
+            m_isDodging = false;
         }
         // check for keys pressed
         foreach(KeyCode key in m_KeysPressed)
         {
-            CheckKeyPressed(key);
             // player stopped pressing buttons, check for combo
-            if ((Time.time - m_Time) * 1000 > DELAY_IN_MILLISECONDS && m_KeySequence.Length > 0)
+            if (((Time.time - m_Time) * 1000 > DELAY_IN_MILLISECONDS && m_KeySequence.Length > 0))
             {
-                Debug.Log("Call CheckCombo");
+                UnityEngine.Debug.Log("Call CheckCombo");
                 CheckCombo();
-            }
-            // set to idle
-            if (!this.m_PlayerAnimator.GetCurrentAnimatorStateInfo(0).IsName("Player_Idle"))
-            {
-                m_PlayerAnimator.SetInteger("MoveAnimation", 0);
             }
             // player is button mashing and did not invoke a combo
             if (m_KeySequence.Length > MAX_SEQUENCE_LENGTH)
             {
                 m_KeySequence = new StringBuilder();
             }
+
+            CheckKeyPressed(key);
         }
 	}
 
@@ -167,10 +153,41 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(key))
         {
             m_Time = Time.time;
-            if ((Time.time - m_Time) * 1000 < DELAY_IN_MILLISECONDS)
+            switch (key)
             {
-                m_KeySequence.Append(key);
+                case KeyCode.Q:
+                    ExecuteAbility(AbilityType.ShoulderShrug);
+                    //ShoulderShrug();
+                    InputSequence(key.ToString());
+                    break;
+                case KeyCode.W:
+                    ExecuteAbility(AbilityType.SassBlast);
+                    //SassBlast();
+                    InputSequence(key.ToString());
+                    break;
+                case KeyCode.E:
+                    ExecuteAbility(AbilityType.WhatevaWave);
+                    //WhatevaWave();
+                    InputSequence(key.ToString());
+                    break;
+                case KeyCode.R:
+                    ExecuteAbility(AbilityType.Slouch);
+                    //Slouch();
+                    InputSequence(key.ToString());
+                    break;
             }
+        }
+    }
+
+    /// <summary>
+    /// Keys pressed within 200 milliseconds of each other
+    /// </summary>
+    /// <param name="key"></param>
+    void InputSequence(string key)
+    {
+        if ((Time.time - m_Time)*1000 < DELAY_IN_MILLISECONDS)
+        {
+            m_KeySequence.Append(key);
         }
     }
 
@@ -179,54 +196,200 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void CheckCombo()
     {
-        Debug.Log(m_KeySequence.ToString());
         switch(m_KeySequence.ToString())
         {
-            case PlayerCombos.SHOULDER_SHRUG:
-                m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.ShoulderShrug, 1);
-                break;
-            case PlayerCombos.SASS_BLAST:
-                m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.SassBlast, 2);
-                break;
-            case PlayerCombos.WHATEVA_WAVE:
-                m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.WhatevaWave, 3);
-                break;
-            case PlayerCombos.SLOUCH:
-                m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.Slouch, 4);
-                break;
             case PlayerCombos.JAYZ:
+                //UnityEngine.Debug.Log("Do the Jay-Z");
                 m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.JayZ, 5);
+                ExecuteAbility(AbilityType.JayZ);
+                //JayZ();
                 break;
             case PlayerCombos.TABLE_FLIP:
+                //UnityEngine.Debug.Log("Do the Tableflip");
                 m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.TableFlip, 6);
+                ExecuteAbility(AbilityType.TableFlip);
+                //TableFlip();
                 break;
             case PlayerCombos.IM_NOT_LISTENING:
+                // GET FACING DIRECTION
+                //UnityEngine.Debug.Log("Do the I'm Not Listening");
                 m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.ImNotListening, 7);
+                ExecuteAbility(AbilityType.ImNotListening);
+                //ImNotListening();
                 break;
             case PlayerCombos.WALK_AWAY:
+                // GET FACING DIRECTION
+                //UnityEngine.Debug.Log("Do the Walk Away");
                 m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.WalkAway, 8);
+                //WalkAway();
+                ExecuteAbility(AbilityType.WalkAway);
                 break;
         }
         m_KeySequence = new StringBuilder();
     }
 
-    private void AnimateAndExecute(AbilityType ability, int animation)
+    #endregion
+
+    #region Melee Attacks
+
+    /// <summary>
+    /// Simple melee attack
+    /// </summary>
+    void ShoulderShrug()
     {
-        m_PlayerAnimator.SetInteger("MoveAnimation", animation);
-        ExecuteAbility(ability);
+        float distance = 1;
+        if (EnemyDistanceAndDirection(distance))
+        {
+            // deal damage to enemy
+            UnityEngine.Debug.Log("Do the Shoulder Shrug");
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    void SassBlast()
+    {
+        float distance = 1;
+        if (EnemyDistanceAndDirection(distance))
+        {
+            // deal damage to enemy
+            UnityEngine.Debug.Log("Do the Sass Blast");
+        }
+    }
+
+    /// <summary>
+    /// Melee counter-attack
+    /// </summary>
+    void ImNotListening()
+    {
+        float distance = 1;
+        if (EnemyDistanceAndDirection(distance))
+        {
+            // deal damage to enemy
+            UnityEngine.Debug.Log("Do the I'm Not Listening");
+        }
+    }
+
+    bool EnemyDistanceAndDirection(float minDistance)
+    {
+        var heading = m_Enemy.transform.position - transform.position;
+        var distance = heading.magnitude;
+        var direction = heading / distance; // This is now the normalized direction.
+        // enemy on right positive, enemy on left negative
+        if (distance < minDistance)
+        {
+            if ((direction.x > 0 && m_IsFacingRight) || (direction.x < 0 && !m_IsFacingRight))
+            {
+                UnityEngine.Debug.Log("Facing enemy. dir: " + direction + " heading: " + heading);
+                return true;
+            }
+        }
+        UnityEngine.Debug.Log("Not facing enemy. dir: " + direction + " heading: " + heading);
+        return false;
     }
 
     #endregion
 
-    #region Player methods
+    #region Ranged Attacks
+
+    /// <summary>
+    /// The table is a long-ranged, low damage attack
+    /// Implemented in TableFlip.cs
+    /// </summary>
+    void TableFlip()
+    {
+        //CreateProjectile(m_Table, m_TableForce, 5.0f);
+    }
+
+    /// <summary>
+    /// Short-ranged, high damage attack that needs to charge
+    /// Implemented in Jayz.cs
+    /// </summary>
+    void JayZ()
+    {
+        //CreateProjectile(m_Jayz, m_JayzForce, 10.0f);
+    }
+
+    /// <summary>
+    /// Projectiles being thrown
+    /// </summary>
+    /// <param name="prefab"></param>
+    /// <param name="force"></param>
+    /// <param name="damage"></param>
+    void CreateProjectile(GameObject prefab, float force, float damage)
+    {
+        Vector2 direction = (m_Enemy.transform.position - transform.position).normalized;
+        Vector2 position = transform.position;
+        GameObject go = (GameObject)Instantiate(prefab, position + direction, Quaternion.identity);
+        Rigidbody2D body = go.GetComponent<Rigidbody2D>();
+        Projectile projectile = go.GetComponent<Projectile>();
+        projectile.sender = transform;
+        projectile.target = m_Enemy.transform;
+        projectile.damage = damage + m_DamageBuff;
+        body.AddForce(direction * force, ForceMode2D.Impulse);
+    }
+
+    #endregion
+
+    #region Dodge
+
+    /// <summary>
+    /// Dodge with, Implemented in WhatevaWave.cs
+    /// </summary>
+    void WhatevaWave()
+    {
+        //if ((Time.time * 1000) - m_DodgeTime < DODGE_TIME)
+        //{
+        //    UnityEngine.Debug.Log("Already dodging");
+        //}
+        //else
+        //{
+        //    UnityEngine.Debug.Log("WHATEVAWAVE");
+        //    m_DodgeTime = Time.time;
+        //    m_isDodging = true;
+        //}
+    }
+
+    /// <summary>
+    /// Dodge with dust cloud, Implemented in WalkAway.cs
+    /// </summary>
+    void WalkAway()
+    {
+        //if ((Time.time * 1000) - m_DodgeTime < DODGE_TIME)
+        //{
+        //    UnityEngine.Debug.Log("Already dodging");
+        //}
+        //else
+        //{
+        //    UnityEngine.Debug.Log("WALKAWAY");
+        //    m_DodgeTime = Time.time;
+        //    m_isDodging = true;
+        //}
+    }
+
+    #endregion
+
+    #region Buffs
+
+    /// <summary>
+    /// Buff, Implemented in Slouch.cs
+    /// </summary>
+    void Slouch()
+    {
+        //if ((Time.time * 1000) - m_BuffTime < BUFF_COOLDOWN)
+        //{
+        //    UnityEngine.Debug.Log("Buff is on cooldown");
+        //}
+        //else
+        //{
+        //    UnityEngine.Debug.Log("Buff has been applied");
+        //    m_BuffTime = Time.time * 1000;
+        //    m_DamageBuff += DAMAGE_BUFF;
+        //}
+    }
+
+    #endregion
 
     /// <summary>
     /// Check player grounded
@@ -236,7 +399,7 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.transform.tag == "Ground" && !m_IsGrounded)
         {
-            Debug.Log("Touched Ground");
+            UnityEngine.Debug.Log("Touched Ground");
             m_IsGrounded = true;
         }
     }
@@ -247,7 +410,7 @@ public class PlayerController : MonoBehaviour
     /// <param name="dmg"></param>
     void TakeDamage(int dmg)
     {
-        if (m_IsDodging)
+        if (m_isDodging)
             return;
 
         if (m_Health <= 0 || dmg > m_Health)
@@ -259,10 +422,6 @@ public class PlayerController : MonoBehaviour
             m_Health -= dmg;
         }
     }
-
-    #endregion
-
-    #region Abilities
 
     /// <summary>
     /// Used to register for events
@@ -296,25 +455,21 @@ public class PlayerController : MonoBehaviour
         transform.rotation = Quaternion.identity;
         if(Input.GetKeyDown(KeyCode.Alpha1))
         {
-            AnimateAndExecute(AbilityType.JayZ, 5);
+            ExecuteAbility(AbilityType.JayZ);
         }
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            AnimateAndExecute(AbilityType.TableFlip, 6);
+            ExecuteAbility(AbilityType.TableFlip);
         }
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
-            AnimateAndExecute(AbilityType.ImNotListening, 7);
+            ExecuteAbility(AbilityType.SassBlast);
         }
         if (Input.GetKeyDown(KeyCode.Alpha4))
         {
-            AnimateAndExecute(AbilityType.WalkAway, 8);
+            ExecuteAbility(AbilityType.Slouch);
         }
     }
-
-    #endregion
-
-    #region Public accessors
 
     public float buffTime
     {
@@ -333,14 +488,7 @@ public class PlayerController : MonoBehaviour
     }
     public bool isDodging
     {
-        get { return m_IsDodging; }
-        set { m_IsDodging = value; }
+        get { return m_isDodging; }
+        set { m_isDodging = value; }
     }
-    public bool isDead
-    {
-        get { return m_IsDead; }
-        set { m_IsDead = value; }
-    }
-
-    #endregion
 }
