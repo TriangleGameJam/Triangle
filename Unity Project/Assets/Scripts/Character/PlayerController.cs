@@ -94,32 +94,16 @@ public class PlayerController : MonoBehaviour
     {
         NathansHack();
 
-        // remove buff after 10 secs
-        if ((Time.time * 1000) - m_BuffTime >= BUFF_TIME && m_DamageBuff > 0)
-        {
-            Debug.Log("Buff removed");
-            m_DamageBuff = ZERO;
-        }
-        // stop dodging after 1/2 second
-        if ((Time.time * 1000) - m_DodgeTime >= DODGE_TIME && m_IsDodging)
-        {
-            Debug.Log("Stopped dodging");
-            m_IsDodging = false;
-        }
+        CheckTimers();
         // check for keys pressed
-        foreach(KeyCode key in m_KeysPressed)
+        foreach (KeyCode key in m_KeysPressed)
         {
             CheckKeyPressed(key);
-            // player stopped pressing buttons, check for combo
-            if ((Time.time - m_Time) * 1000 > DELAY_IN_MILLISECONDS && m_KeySequence.Length > 0)
-            {
-                Debug.Log("Call CheckCombo");
-                CheckCombo();
-            }
+            CheckCombo();
             // set to idle
             if (!this.m_PlayerAnimator.GetCurrentAnimatorStateInfo(0).IsName("Player_Idle"))
             {
-                m_PlayerAnimator.SetInteger("MoveAnimation", 0);
+                m_PlayerAnimator.SetInteger("Ability", 0);
             }
             // player is button mashing and did not invoke a combo
             if (m_KeySequence.Length > MAX_SEQUENCE_LENGTH)
@@ -147,12 +131,26 @@ public class PlayerController : MonoBehaviour
                     tmp = new Vector2(m_Position.x + m_MoveSpeed, m_Position.y);
                     transform.position = tmp;
                     m_IsFacingRight = true;
+                    m_PlayerAnimator.SetBool("FacingRight", true);
+                    m_PlayerAnimator.SetBool("Idle", false);
                     break;
                 case KeyCode.LeftArrow:
                     m_Position = transform.position;
                     tmp = new Vector2(m_Position.x - m_MoveSpeed, m_Position.y);
                     transform.position = tmp;
                     m_IsFacingRight = false;
+                    m_PlayerAnimator.SetBool("FacingRight", false);
+                    m_PlayerAnimator.SetBool("Idle", false);
+                    break;
+            }
+        }
+        if (Input.GetKeyUp(key))
+        {
+            switch (key)
+            {
+                case KeyCode.RightArrow:
+                case KeyCode.LeftArrow:
+                    m_PlayerAnimator.SetBool("Idle", true);
                     break;
             }
         }
@@ -162,14 +160,23 @@ public class PlayerController : MonoBehaviour
             {
                 rigidbody2D.AddForce(Vector3.up * m_JumpForce * Time.deltaTime, ForceMode2D.Impulse);
                 m_IsGrounded = false;
+                m_PlayerAnimator.SetBool("Jumping", true);
             }
         }
         if (Input.GetKeyDown(key))
         {
             m_Time = Time.time;
-            if ((Time.time - m_Time) * 1000 < DELAY_IN_MILLISECONDS)
+            switch (key)
             {
-                m_KeySequence.Append(key);
+                case KeyCode.Q:
+                case KeyCode.W:
+                case KeyCode.E:
+                case KeyCode.R:
+                    if ((Time.time - m_Time) * 1000 < DELAY_IN_MILLISECONDS)
+                    {
+                        m_KeySequence.Append(key);
+                    }
+                    break;
             }
         }
     }
@@ -179,49 +186,71 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void CheckCombo()
     {
-        Debug.Log(m_KeySequence.ToString());
-        switch(m_KeySequence.ToString())
+        if ((Time.time - m_Time) * 1000 > DELAY_IN_MILLISECONDS && m_KeySequence.Length > 0)
         {
-            case PlayerCombos.SHOULDER_SHRUG:
-                m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.ShoulderShrug, 1);
-                break;
-            case PlayerCombos.SASS_BLAST:
-                m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.SassBlast, 2);
-                break;
-            case PlayerCombos.WHATEVA_WAVE:
-                m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.WhatevaWave, 3);
-                break;
-            case PlayerCombos.SLOUCH:
-                m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.Slouch, 4);
-                break;
-            case PlayerCombos.JAYZ:
-                m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.JayZ, 5);
-                break;
-            case PlayerCombos.TABLE_FLIP:
-                m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.TableFlip, 6);
-                break;
-            case PlayerCombos.IM_NOT_LISTENING:
-                m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.ImNotListening, 7);
-                break;
-            case PlayerCombos.WALK_AWAY:
-                m_KeySequence = new StringBuilder();
-                AnimateAndExecute(AbilityType.WalkAway, 8);
-                break;
+            Debug.Log(m_KeySequence.ToString());
+            switch (m_KeySequence.ToString())
+            {
+                case PlayerCombos.SHOULDER_SHRUG:
+                    m_KeySequence = new StringBuilder();
+                    AnimateAndExecute(AbilityType.ShoulderShrug, 1);
+                    break;
+                case PlayerCombos.SASS_BLAST:
+                    m_KeySequence = new StringBuilder();
+                    AnimateAndExecute(AbilityType.SassBlast, 2);
+                    break;
+                case PlayerCombos.WHATEVA_WAVE:
+                    m_KeySequence = new StringBuilder();
+                    AnimateAndExecute(AbilityType.WhatevaWave, 3);
+                    break;
+                case PlayerCombos.SLOUCH:
+                    m_KeySequence = new StringBuilder();
+                    AnimateAndExecute(AbilityType.Slouch, 4);
+                    break;
+                case PlayerCombos.JAYZ:
+                    m_KeySequence = new StringBuilder();
+                    AnimateAndExecute(AbilityType.JayZ, 5);
+                    break;
+                case PlayerCombos.TABLE_FLIP:
+                    m_KeySequence = new StringBuilder();
+                    AnimateAndExecute(AbilityType.TableFlip, 6);
+                    break;
+                case PlayerCombos.IM_NOT_LISTENING:
+                    m_KeySequence = new StringBuilder();
+                    AnimateAndExecute(AbilityType.ImNotListening, 7);
+                    break;
+                case PlayerCombos.WALK_AWAY:
+                    m_KeySequence = new StringBuilder();
+                    AnimateAndExecute(AbilityType.WalkAway, 8);
+                    break;
+            }
+            m_KeySequence = new StringBuilder();
         }
-        m_KeySequence = new StringBuilder();
     }
 
     private void AnimateAndExecute(AbilityType ability, int animation)
     {
-        m_PlayerAnimator.SetInteger("MoveAnimation", animation);
+        m_PlayerAnimator.SetInteger("Ability", animation);
         ExecuteAbility(ability);
+    }
+
+    /// <summary>
+    /// Check timers for buffs and dodges
+    /// </summary>
+    private void CheckTimers()
+    {
+        // remove buff after 10 secs
+        if ((Time.time * 1000) - m_BuffTime >= BUFF_TIME && m_DamageBuff > 0)
+        {
+            Debug.Log("Buff removed");
+            m_DamageBuff = ZERO;
+        }
+        // stop dodging after 1/2 second
+        if ((Time.time * 1000) - m_DodgeTime >= DODGE_TIME && m_IsDodging)
+        {
+            Debug.Log("Stopped dodging");
+            m_IsDodging = false;
+        }
     }
 
     #endregion
@@ -238,6 +267,7 @@ public class PlayerController : MonoBehaviour
         {
             Debug.Log("Touched Ground");
             m_IsGrounded = true;
+            m_PlayerAnimator.SetBool("Jumping", false);
         }
     }
 
