@@ -8,7 +8,7 @@ public class Example : MonoBehaviour
 
     void Awake()
     {
-
+        Debug.Log("hi");
     }
 	// Use this for initialization
 	void Start () 
