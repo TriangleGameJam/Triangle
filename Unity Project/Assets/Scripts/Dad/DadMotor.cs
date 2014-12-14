@@ -6,10 +6,8 @@ public class DadMotor : MonoBehaviour
 {
     private enum State
     {
-        Idle,
-        Waiting,
-        Attacking,
-        MovingToGoal
+        Action1,
+        Action2
     }
 
     [SerializeField]
@@ -40,6 +38,10 @@ public class DadMotor : MonoBehaviour
     private float m_ActionQueueTime = 10.0f;
     private float m_ActionTimer = 0.0f;
 
+    private State m_State = State.Action1;
+    private float m_StateSwitchTimer = 30.0f;
+    private float m_StateTimer = 0.0f;
+
 	// Use this for initialization
 	void Start () 
     {
@@ -56,32 +58,49 @@ public class DadMotor : MonoBehaviour
 	
 	void Update()
     {
-        m_CurrentTime += Time.deltaTime;
-        if(m_CurrentTime > m_Timer)
+        switch(m_State)
         {
-            UpdateTarget();
-        }
-        Vector3 direction = (m_Target - transform.position).normalized;
-        Vector3 position = transform.position + direction * m_MovementSpeed * Time.deltaTime;
-        float distanceA = Vector3.Distance(m_Target, transform.position);
-        float distanceB = Vector3.Distance(m_Target, position);
-        if(distanceB > distanceA)
-        {
-            transform.position = m_Target;
-        }
-        else
-        {
-            transform.position = position;
-        }
+            case State.Action1:
+                {
+                    m_StateTimer += Time.deltaTime;
+                    m_CurrentTime += Time.deltaTime;
+                    if (m_CurrentTime > m_Timer)
+                    {
+                        UpdateTarget();
+                    }
+                    Vector3 direction = (m_Target - transform.position).normalized;
+                    Vector3 position = transform.position + direction * m_MovementSpeed * Time.deltaTime;
+                    float distanceA = Vector3.Distance(m_Target, transform.position);
+                    float distanceB = Vector3.Distance(m_Target, position);
+                    if (distanceB > distanceA)
+                    {
+                        transform.position = m_Target;
+                    }
+                    else
+                    {
+                        transform.position = position;
+                    }
 
 
-        m_ActionTimer += Time.deltaTime;
-        if(m_ActionTimer > m_ActionQueueTime)
-        {
-            //TODO: Choose a random action and queue it up
-            StartCoroutine(TossBeerRoutine());
-            m_ActionTimer = 0.0f;
+                    m_ActionTimer += Time.deltaTime;
+                    if (m_ActionTimer > m_ActionQueueTime)
+                    {
+                        //TODO: Choose a random action and queue it up
+                        StartCoroutine(TossBeerRoutine());
+                        m_ActionTimer = 0.0f;
+                    }
+                    if (m_StateTimer > m_StateSwitchTimer)
+                    { 
+                    }
+                }
+                break;
+            case State.Action2:
+                {
+
+                }
+                break;
         }
+        
 
     }
 
